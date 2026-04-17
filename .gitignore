@@ -1,0 +1,40 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.venv/
+venv/
+*.egg-info/
+.pytest_cache/
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Secrets — never commit these
+firebase-service-account.json
+google-services.json
+*.p8
+*.pem
+
+# Node
+node_modules/
+.npm/
+
+# Next.js
+web/.next/
+web/out/
+
+# Expo / React Native
+mobile/.expo/
+mobile/dist/
+mobile/android/
+mobile/ios/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
