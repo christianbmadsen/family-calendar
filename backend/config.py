@@ -23,6 +23,8 @@ class Settings(BaseSettings):
     amadeus_client_id: str
     amadeus_client_secret: str
 
+    agent_run_interval_days: int = 2
+
     class Config:
         env_file = ".env"
 

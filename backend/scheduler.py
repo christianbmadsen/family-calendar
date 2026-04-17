@@ -1,6 +1,7 @@
 from datetime import datetime, timezone, timedelta
 from apscheduler.schedulers.background import BackgroundScheduler
 from firebase import db
+from config import settings
 from services.notifications import (
     notify_family,
     fmt_pre_event,
@@ -125,7 +126,7 @@ def start_scheduler() -> None:
     scheduler.add_job(_pre_event_reminders, "interval", minutes=1, id="pre_event")
     scheduler.add_job(_daily_digest, "cron", hour=20, minute=0, id="daily_digest")
     scheduler.add_job(_weekly_digest, "cron", day_of_week="sun", hour=18, minute=0, id="weekly_digest")
-    scheduler.add_job(_run_agents, "cron", day_of_week="mon", hour=9, minute=0, id="agents")
+    scheduler.add_job(_run_agents, "interval", days=settings.agent_run_interval_days, id="agents")
     scheduler.start()
 
 
