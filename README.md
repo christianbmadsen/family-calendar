@@ -26,9 +26,41 @@ family-calendar/
 | Account | Purpose | Cost |
 |---|---|---|
 | Google | Auth, Calendar, Firestore, Vertex AI (Claude), Places, Gmail | Free / pay-per-use |
-| Twilio | — (dropped, using Gmail) | — |
 | Ticketmaster | Local event discovery | Free |
 | Amadeus | Flight deal search | Free |
+
+---
+
+## Quick Start
+
+The easiest way to get set up is to run the interactive setup script from the repo root:
+
+```bash
+python3 setup.py
+```
+
+The script will:
+1. Guide you through creating and configuring a Google Cloud project
+2. Set up Firebase / Firestore and download the service account key
+3. Walk through OAuth credentials and Gmail App Password
+4. Prompt for Ticketmaster and Amadeus API keys
+5. Write all `.env` files for the backend, web, and mobile apps
+6. Install Python and Node dependencies automatically
+
+Once it completes, start the stack with three terminals:
+
+```bash
+# Terminal 1 — backend
+cd backend && source .venv/bin/activate && uvicorn main:app --reload --port 8000
+
+# Terminal 2 — web
+cd web && npm run dev
+
+# Terminal 3 — mobile (optional)
+cd mobile && npx expo start
+```
+
+The manual steps below are only needed if you prefer to configure things yourself or need to troubleshoot a specific step.
 
 ---
 
