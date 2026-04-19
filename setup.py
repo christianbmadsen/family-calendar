@@ -160,8 +160,6 @@ def main():
     missing = []
     for tool, hint in [
         ("python3", "https://python.org"),
-        ("node",    "https://nodejs.org"),
-        ("npm",     "https://nodejs.org"),
         ("git",     "https://git-scm.com"),
     ]:
         if has_cmd(tool):
@@ -174,6 +172,13 @@ def main():
         blank()
         err("Please install the missing tools above and re-run setup.")
         sys.exit(1)
+
+    node_available = has_cmd("node") and has_cmd("npm")
+    if node_available:
+        ok("node + npm  (web/mobile frontends)")
+    else:
+        warn("node/npm not found — backend-only setup will proceed")
+        info("Install from https://nodejs.org to also set up the web/mobile apps")
 
     # ── Step 2: Gmail credentials ─────────────────────────────────────────
     step(2, TOTAL_STEPS, "Gmail — email notifications")
@@ -276,19 +281,23 @@ def main():
     run(f"{pip} install -q -r requirements.txt", cwd=BACKEND, capture=False)
     ok("Backend packages installed")
 
-    if ask_yes("Install web dependencies? (npm install)", default=True):
-        info("Installing web packages…")
-        run("npm install --silent", cwd=WEB, capture=False)
-        ok("Web packages installed")
-    else:
-        warn("Skipped  — run 'npm install' in web/ when ready")
+    if node_available:
+        if ask_yes("Install web dependencies? (npm install)", default=True):
+            info("Installing web packages…")
+            run("npm install --silent", cwd=WEB, capture=False)
+            ok("Web packages installed")
+        else:
+            warn("Skipped  — run 'npm install' in web/ when ready")
 
-    if ask_yes("Install mobile dependencies? (npm install)", default=True):
-        info("Installing mobile packages…")
-        run("npm install --silent", cwd=MOBILE, capture=False)
-        ok("Mobile packages installed")
+        if ask_yes("Install mobile dependencies? (npm install)", default=True):
+            info("Installing mobile packages…")
+            run("npm install --silent", cwd=MOBILE, capture=False)
+            ok("Mobile packages installed")
+        else:
+            warn("Skipped  — run 'npm install' in mobile/ when ready")
     else:
-        warn("Skipped  — run 'npm install' in mobile/ when ready")
+        warn("Skipping web/mobile installs — node/npm not available")
+        info("Run 'npm install' in web/ and mobile/ after installing Node")
 
     # ── Done ──────────────────────────────────────────────────────────────
     header("Setup complete!")
