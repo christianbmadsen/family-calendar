@@ -4,13 +4,7 @@ from pydantic_settings import BaseSettings
 class Settings(BaseSettings):
     google_client_id: str
     google_client_secret: str
-    google_redirect_uri: str
-
-    firebase_project_id: str
-    firebase_credentials_path: str
-
-    google_cloud_project: str
-    vertex_ai_location: str = "us-east5"
+    google_redirect_uri: str = "postmessage"
 
     jwt_secret: str
     jwt_algorithm: str = "HS256"
@@ -19,11 +13,7 @@ class Settings(BaseSettings):
     gmail_address: str
     gmail_app_password: str
 
-    ticketmaster_api_key: str
-    amadeus_client_id: str
-    amadeus_client_secret: str
-
-    agent_run_interval_days: int = 2
+    db_path: str = "./family_calendar.db"
 
     class Config:
         env_file = ".env"

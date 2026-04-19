@@ -1,6 +1,5 @@
 fastapi==0.115.0
 uvicorn[standard]==0.30.0
-firebase-admin==6.5.0
 google-auth==2.35.0
 google-auth-oauthlib==1.2.1
 google-api-python-client==2.149.0
@@ -9,6 +8,3 @@ pydantic-settings==2.5.2
 PyJWT==2.9.0
 python-dotenv==1.0.1
 apscheduler==3.10.4
-anthropic[vertex]==0.34.2
-httpx==0.27.2
-amadeus==8.1.0

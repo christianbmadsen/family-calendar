@@ -1,7 +1,6 @@
 from datetime import datetime, timezone, timedelta
 from apscheduler.schedulers.background import BackgroundScheduler
 from firebase import db
-from config import settings
 from services.notifications import (
     notify_family,
     fmt_pre_event,
@@ -11,8 +10,6 @@ from services.notifications import (
 
 scheduler = BackgroundScheduler(timezone="UTC")
 
-# Tracks which events have already had a pre-event reminder sent this session.
-# Stored as a set of event IDs to avoid double-sending within the same window.
 _reminded: set[str] = set()
 
 
@@ -32,15 +29,8 @@ def _pre_event_reminders() -> None:
         event = doc.to_dict()
         if event["id"] in _reminded:
             continue
-
         title, body = fmt_pre_event(event["title"], event.get("location"))
-        notify_family(
-            event["family_id"],
-            title,
-            body,
-            data={"event_id": event["id"], "type": "pre_event"},
-            include_email=False,  # push only — too frequent for email
-        )
+        notify_family(event["family_id"], title, body, include_email=False)
         _reminded.add(event["id"])
 
 
@@ -51,11 +41,8 @@ def _daily_digest() -> None:
     )
     tomorrow_end = tomorrow_start + timedelta(days=1)
 
-    family_docs = db.collection("families").get()
-
-    for fam_doc in family_docs:
+    for fam_doc in db.collection("families").get():
         family_id = fam_doc.id
-
         events = (
             db.collection("events")
             .where("family_id", "==", family_id)
@@ -64,10 +51,8 @@ def _daily_digest() -> None:
             .order_by("start_datetime")
             .get()
         )
-
-        event_list = [e.to_dict() for e in events]
-        title, body = fmt_daily_digest(event_list)
-        notify_family(family_id, title, body, data={"type": "daily_digest"}, include_email=True)
+        title, body = fmt_daily_digest([e.to_dict() for e in events])
+        notify_family(family_id, title, body, include_email=True)
 
 
 def _weekly_digest() -> None:
@@ -77,11 +62,8 @@ def _weekly_digest() -> None:
     )
     week_end = week_start + timedelta(days=7)
 
-    family_docs = db.collection("families").get()
-
-    for fam_doc in family_docs:
+    for fam_doc in db.collection("families").get():
         family_id = fam_doc.id
-
         events = (
             db.collection("events")
             .where("family_id", "==", family_id)
@@ -90,8 +72,6 @@ def _weekly_digest() -> None:
             .order_by("start_datetime")
             .get()
         )
-
-        # Group by day label
         days: dict[str, list[dict]] = {}
         for e in events:
             event = e.to_dict()
@@ -102,31 +82,13 @@ def _weekly_digest() -> None:
             days.setdefault(day_label, []).append(event)
 
         title, body = fmt_weekly_digest(days)
-        notify_family(family_id, title, body, data={"type": "weekly_digest"}, include_email=True)
-
-
-def _run_agents() -> None:
-    from services.agents.opportunity import run_opportunity_agent
-    from services.agents.travel import run_travel_agent
-
-    family_docs = db.collection("families").get()
-    for fam_doc in family_docs:
-        family_id = fam_doc.id
-        try:
-            run_opportunity_agent(family_id)
-        except Exception as exc:
-            print(f"[scheduler] opportunity agent failed for {family_id}: {exc}")
-        try:
-            run_travel_agent(family_id)
-        except Exception as exc:
-            print(f"[scheduler] travel agent failed for {family_id}: {exc}")
+        notify_family(family_id, title, body, include_email=True)
 
 
 def start_scheduler() -> None:
     scheduler.add_job(_pre_event_reminders, "interval", minutes=1, id="pre_event")
     scheduler.add_job(_daily_digest, "cron", hour=20, minute=0, id="daily_digest")
     scheduler.add_job(_weekly_digest, "cron", day_of_week="sun", hour=18, minute=0, id="weekly_digest")
-    scheduler.add_job(_run_agents, "interval", days=settings.agent_run_interval_days, id="agents")
     scheduler.start()
 
 
