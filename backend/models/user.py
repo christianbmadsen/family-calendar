@@ -14,6 +14,7 @@ class User(BaseModel):
     notify_email: bool = True
     google_calendar_id: Optional[str] = None
     google_refresh_token: Optional[str] = None
+    password_hash: Optional[str] = None
     created_at: datetime
 
 

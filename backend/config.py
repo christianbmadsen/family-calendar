@@ -2,8 +2,9 @@ from pydantic_settings import BaseSettings
 
 
 class Settings(BaseSettings):
-    google_client_id: str
-    google_client_secret: str
+    # Google OAuth — optional; enables Google Sign-In and Calendar sync when set
+    google_client_id: str = ""
+    google_client_secret: str = ""
     google_redirect_uri: str = "postmessage"
 
     jwt_secret: str

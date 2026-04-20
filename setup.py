@@ -49,7 +49,7 @@ BACKEND = ROOT / 'backend'
 WEB     = ROOT / 'web'
 MOBILE  = ROOT / 'mobile'
 
-TOTAL_STEPS = 5
+TOTAL_STEPS = 4
 
 
 def ask(question, default=None, secret=False, validate=None):
@@ -205,40 +205,8 @@ def main():
     be_env["GMAIL_ADDRESS"]      = gmail_address
     be_env["GMAIL_APP_PASSWORD"] = gmail_password
 
-    # ── Step 3: Google OAuth credentials ─────────────────────────────────
-    step(3, TOTAL_STEPS, "Google OAuth — Calendar + sign-in")
-
-    client_id     = be_env.get("GOOGLE_CLIENT_ID")     or web_env.get("NEXT_PUBLIC_GOOGLE_CLIENT_ID")
-    client_secret = be_env.get("GOOGLE_CLIENT_SECRET")
-
-    if client_id and client_secret and client_id != "your_google_client_id":
-        ok(f"OAuth credentials already set: {cyan(client_id[:30])}…")
-    else:
-        info("Family Calendar uses Google OAuth to sign in and sync your calendar.")
-        info("You need a free Google Cloud project with the Calendar API enabled.")
-        blank()
-        info("Quick steps (takes ~5 minutes):")
-        info("  1. Create a project at console.cloud.google.com")
-        info("  2. Enable the Google Calendar API")
-        info("  3. Configure OAuth consent screen (External, add yourself as test user)")
-        info("     Scopes: openid, email, profile, calendar")
-        info("  4. Create credentials → OAuth 2.0 Client ID → Web application")
-        info("     Authorised JS origins:    http://localhost:3000")
-        info("     Authorised redirect URIs: http://localhost:3000")
-        blank()
-        open_url("https://console.cloud.google.com/apis/credentials")
-        pause("Press Enter once you've created the OAuth Client ID…")
-
-        client_id     = ask("Paste your OAuth Client ID")
-        client_secret = ask("Paste your OAuth Client Secret", secret=True)
-        ok("OAuth credentials saved")
-
-    be_env["GOOGLE_CLIENT_ID"]     = client_id
-    be_env["GOOGLE_CLIENT_SECRET"] = client_secret
-    be_env["GOOGLE_REDIRECT_URI"]  = be_env.get("GOOGLE_REDIRECT_URI", "postmessage")
-
-    # ── Step 4: Write environment files ──────────────────────────────────
-    step(4, TOTAL_STEPS, "Writing environment files")
+    # ── Step 3: Write environment files ──────────────────────────────────
+    step(3, TOTAL_STEPS, "Writing environment files")
 
     if not be_env.get("JWT_SECRET") or be_env.get("JWT_SECRET") == "change_this_to_a_long_random_string":
         be_env["JWT_SECRET"] = jwt_secret()
@@ -254,14 +222,12 @@ def main():
     ok(f"Written: {cyan('backend/.env')}")
 
     web_vals = {
-        "NEXT_PUBLIC_GOOGLE_CLIENT_ID": client_id,
         "NEXT_PUBLIC_API_URL": web_env.get("NEXT_PUBLIC_API_URL", "http://localhost:8000"),
     }
     write_env(WEB / '.env.local', web_vals, example=WEB / '.env.local.example')
     ok(f"Written: {cyan('web/.env.local')}")
 
     mob_vals = {
-        "EXPO_PUBLIC_GOOGLE_CLIENT_ID": client_id,
         "EXPO_PUBLIC_API_URL": mob_env.get("EXPO_PUBLIC_API_URL", "http://localhost:8000"),
     }
     write_env(MOBILE / '.env', mob_vals, example=MOBILE / '.env.example')
@@ -270,8 +236,8 @@ def main():
     warn("For mobile on a physical device, update EXPO_PUBLIC_API_URL in mobile/.env")
     info("  Use your machine's local IP (e.g. http://192.168.1.x:8000)")
 
-    # ── Step 5: Install dependencies ──────────────────────────────────────
-    step(5, TOTAL_STEPS, "Installing dependencies")
+    # ── Step 4: Install dependencies ──────────────────────────────────────
+    step(4, TOTAL_STEPS, "Installing dependencies")
 
     info("Installing Python packages…")
     venv = BACKEND / '.venv'
