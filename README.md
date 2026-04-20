@@ -45,8 +45,9 @@ python3 setup.py
 The script will:
 1. Check that Python and Node are installed
 2. Ask for your Gmail address and App Password
-3. Write `.env` files for the backend and web app (with a generated JWT secret)
-4. Install Python and Node dependencies automatically
+3. Optionally ask for an Anthropic API key (enables AI activity suggestions)
+4. Write `.env` files for the backend and web app (with a generated JWT secret)
+5. Install Python and Node dependencies automatically
 
 Then start the app with two terminals:
 
@@ -127,13 +128,13 @@ Standard Gmail passwords don't work with SMTP. You need an App Password:
 
 ## AI Activity Suggestions (optional)
 
-Add your Anthropic API key to `backend/.env`:
+The setup script will ask if you want to add an Anthropic API key. If you skipped it, add it manually to `backend/.env`:
 
 ```env
 ANTHROPIC_API_KEY=sk-ant-...
 ```
 
-Then restart the backend. The **Suggestions** page in the web app will let you generate 5 AI-powered activity ideas for the next 30 days, avoiding conflicts with your existing schedule. You can add them directly to your calendar or dismiss them.
+Then restart the backend. The **Suggestions** page will let you generate 5 AI-powered activity ideas for the next 30 days, avoiding conflicts with your existing schedule. You can add them directly to your calendar or dismiss them.
 
 Get an API key at [console.anthropic.com](https://console.anthropic.com).
 
