@@ -4,10 +4,11 @@ import os
 import secrets
 import uuid
 from datetime import datetime, timezone, timedelta
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 from firebase import db
 from models.user import User, UserPublic
+from dependencies import get_current_user
 from config import settings
 
 router = APIRouter(prefix="/auth", tags=["auth"])
@@ -119,6 +120,11 @@ def login(body: LoginRequest):
         user=UserPublic(**user_data),
         is_new_user=False,
     )
+
+
+@router.get("/me", response_model=UserPublic)
+def me(user: User = Depends(get_current_user)):
+    return UserPublic(**user.model_dump())
 
 
 @router.post("/logout", status_code=204)

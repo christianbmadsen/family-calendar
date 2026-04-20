@@ -28,6 +28,7 @@ async function request<T>(
 
   if (res.status === 401) {
     localStorage.removeItem('auth_token')
+    localStorage.removeItem('auth_user')
     window.location.href = '/'
     throw new Error('Unauthorized')
   }
@@ -53,6 +54,7 @@ export const authApi = {
       method: 'POST',
       body: JSON.stringify({ email, password, name }),
     }),
+  me: () => request<User>('/auth/me'),
   logout: () => request<void>('/auth/logout', { method: 'POST' }),
 }
 

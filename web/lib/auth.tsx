@@ -23,12 +23,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const stored = localStorage.getItem('auth_token')
+    if (!stored) {
+      setIsLoading(false)
+      return
+    }
+    // Seed from cache immediately so the UI doesn't flash, then verify with the server
     const storedUser = localStorage.getItem('auth_user')
-    if (stored && storedUser) {
+    if (storedUser) {
       setToken(stored)
       setUser(JSON.parse(storedUser))
     }
-    setIsLoading(false)
+    authApi.me()
+      .then(freshUser => {
+        setToken(stored)
+        setUser(freshUser)
+        localStorage.setItem('auth_user', JSON.stringify(freshUser))
+      })
+      .catch(() => {
+        // Token expired or invalid — clear everything
+        localStorage.removeItem('auth_token')
+        localStorage.removeItem('auth_user')
+        setToken(null)
+        setUser(null)
+      })
+      .finally(() => setIsLoading(false))
   }, [])
 
   function _persist(data: { access_token: string; user: User }) {
