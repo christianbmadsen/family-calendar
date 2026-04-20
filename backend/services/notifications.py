@@ -1,6 +1,7 @@
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
+from typing import Optional
 from firebase import db
 from config import settings
 
@@ -21,7 +22,7 @@ def notify_family(
     family_id: str,
     title: str,
     message: str,
-    data: dict | None = None,
+    data: Optional[dict] = None,
     include_email: bool = True,
 ) -> None:
     if not include_email:
@@ -38,7 +39,7 @@ def notify_family(
                 print(f"[notifications] email failed for {member.get('id')}: {exc}")
 
 
-def fmt_pre_event(event_title: str, location: str | None) -> tuple[str, str]:
+def fmt_pre_event(event_title: str, location: Optional[str]) -> tuple[str, str]:
     title = f"Starting in 30 min: {event_title}"
     body = f"Location: {location}" if location else ""
     return title, body

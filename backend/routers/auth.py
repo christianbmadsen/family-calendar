@@ -7,7 +7,7 @@ from datetime import datetime, timezone, timedelta
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from firebase import db
-from models.user import User
+from models.user import User, UserPublic
 from config import settings
 
 router = APIRouter(prefix="/auth", tags=["auth"])
@@ -17,16 +17,19 @@ router = APIRouter(prefix="/auth", tags=["auth"])
 # Password hashing (built-in hashlib.scrypt — no extra dependency)
 # ---------------------------------------------------------------------------
 
+_PBKDF2_ITERATIONS = 260_000
+
+
 def _hash_password(password: str) -> str:
     salt = os.urandom(16)
-    key = hashlib.scrypt(password.encode(), salt=salt, n=2**14, r=8, p=1)
+    key = hashlib.pbkdf2_hmac("sha256", password.encode(), salt, _PBKDF2_ITERATIONS)
     return salt.hex() + ":" + key.hex()
 
 
 def _verify_password(password: str, hashed: str) -> bool:
     salt_hex, key_hex = hashed.split(":", 1)
     salt = bytes.fromhex(salt_hex)
-    key = hashlib.scrypt(password.encode(), salt=salt, n=2**14, r=8, p=1)
+    key = hashlib.pbkdf2_hmac("sha256", password.encode(), salt, _PBKDF2_ITERATIONS)
     return secrets.compare_digest(key.hex(), key_hex)
 
 
@@ -60,7 +63,7 @@ class LoginRequest(BaseModel):
 
 class AuthResponse(BaseModel):
     access_token: str
-    user: User
+    user: UserPublic
     is_new_user: bool
 
 
@@ -94,7 +97,7 @@ def register(body: RegisterRequest):
 
     return AuthResponse(
         access_token=_create_access_token(user_id),
-        user=User(**user_data),
+        user=UserPublic(**user_data),
         is_new_user=True,
     )
 
@@ -113,7 +116,7 @@ def login(body: LoginRequest):
 
     return AuthResponse(
         access_token=_create_access_token(user_data["id"]),
-        user=User(**user_data),
+        user=UserPublic(**user_data),
         is_new_user=False,
     )
 
@@ -214,6 +217,6 @@ if settings.google_client_id and settings.google_client_secret:
 
         return AuthResponse(
             access_token=_create_access_token(user_id),
-            user=User(**user_data),
+            user=UserPublic(**user_data),
             is_new_user=is_new_user,
         )

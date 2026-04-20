@@ -18,6 +18,19 @@ class User(BaseModel):
     created_at: datetime
 
 
+class UserPublic(BaseModel):
+    """Safe user representation — never includes password_hash or sensitive tokens."""
+    id: str
+    email: str
+    name: str
+    photo_url: Optional[str] = None
+    family_id: Optional[str] = None
+    notify_push: bool = True
+    notify_email: bool = True
+    google_calendar_id: Optional[str] = None
+    created_at: datetime
+
+
 class UserUpdate(BaseModel):
     notify_push: Optional[bool] = None
     notify_email: Optional[bool] = None

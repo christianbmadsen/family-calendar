@@ -3,6 +3,7 @@ import os
 import sqlite3
 import threading
 from datetime import datetime
+from typing import Optional
 
 _local = threading.local()
 _TABLES_CREATED: set[str] = set()
@@ -51,7 +52,7 @@ def _ensure_table(name: str) -> None:
             _TABLES_CREATED.add(name)
 
 
-def _get_doc(collection: str, doc_id: str) -> dict | None:
+def _get_doc(collection: str, doc_id: str) -> Optional[dict]:
     _ensure_table(collection)
     row = _conn().execute(
         f'SELECT data FROM "{collection}" WHERE id = ?', (doc_id,)
@@ -66,7 +67,7 @@ def _all_docs(collection: str) -> list[dict]:
 
 
 class DocumentSnapshot:
-    def __init__(self, collection: str, doc_id: str, data: dict | None):
+    def __init__(self, collection: str, doc_id: str, data: Optional[dict]):
         self._collection = collection
         self.id = doc_id
         self._data = data
@@ -127,9 +128,9 @@ class Query:
     def __init__(
         self,
         collection: str,
-        filters: list | None = None,
-        limit_n: int | None = None,
-        order_field: str | None = None,
+        filters: Optional[list] = None,
+        limit_n: Optional[int] = None,
+        order_field: Optional[str] = None,
     ):
         self._collection = collection
         self._filters: list[tuple] = filters or []

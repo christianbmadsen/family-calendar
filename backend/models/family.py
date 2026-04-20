@@ -8,8 +8,8 @@ class Family(BaseModel):
     name: str
     owner_id: str
     member_ids: list[str] = []
-    home_location: str
-    home_airport: str
+    home_location: Optional[str] = None
+    home_airport: Optional[str] = None
     google_calendar_id: Optional[str] = None
     google_sync_token: Optional[str] = None
     created_at: datetime
@@ -17,8 +17,8 @@ class Family(BaseModel):
 
 class FamilyCreate(BaseModel):
     name: str
-    home_location: str
-    home_airport: str
+    home_location: Optional[str] = None
+    home_airport: Optional[str] = None
 
 
 class FamilyUpdate(BaseModel):
