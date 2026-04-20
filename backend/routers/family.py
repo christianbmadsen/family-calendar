@@ -1,3 +1,4 @@
+import secrets
 import uuid
 from datetime import datetime, timezone
 from typing import Optional
@@ -221,6 +222,31 @@ def join_family(
         "member_ids": family.member_ids + [user.id],
     })
     return updated_family
+
+
+@router.get("/ical-token")
+def get_ical_token(ctx: tuple = Depends(get_current_family)):
+    user, family = ctx
+    if family.owner_id != user.id:
+        raise HTTPException(status_code=403, detail="Only the owner can access the iCal token")
+
+    token = family.ical_token
+    if not token:
+        token = secrets.token_urlsafe(32)
+        db.collection("families").document(family.id).update({"ical_token": token})
+
+    return {"token": token, "family_id": family.id}
+
+
+@router.post("/ical-token/regenerate")
+def regenerate_ical_token(ctx: tuple = Depends(get_current_family)):
+    user, family = ctx
+    if family.owner_id != user.id:
+        raise HTTPException(status_code=403, detail="Only the owner can regenerate the iCal token")
+
+    token = secrets.token_urlsafe(32)
+    db.collection("families").document(family.id).update({"ical_token": token})
+    return {"token": token, "family_id": family.id}
 
 
 @router.delete("/members/{member_id}", status_code=204)

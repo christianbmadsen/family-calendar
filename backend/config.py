@@ -16,6 +16,9 @@ class Settings(BaseSettings):
 
     db_path: str = "./family_calendar.db"
 
+    # Optional — enables AI activity suggestions
+    anthropic_api_key: str = ""
+
     class Config:
         env_file = ".env"
 

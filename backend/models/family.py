@@ -12,6 +12,7 @@ class Family(BaseModel):
     home_airport: Optional[str] = None
     google_calendar_id: Optional[str] = None
     google_sync_token: Optional[str] = None
+    ical_token: Optional[str] = None
     created_at: datetime
 
 

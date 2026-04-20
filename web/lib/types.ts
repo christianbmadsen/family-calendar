@@ -61,7 +61,7 @@ export interface Invitation {
 export interface Suggestion {
   id: string
   family_id: string
-  type: 'opportunity' | 'travel_deal'
+  type: 'activity' | 'opportunity' | 'travel_deal'
   title: string
   description: string
   start_datetime: string

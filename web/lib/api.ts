@@ -1,6 +1,6 @@
 import type {
   AuthResponse, CalendarEvent, EventCreate, EventUpdate,
-  Family, Invitation, NotificationPreferences,
+  Family, Invitation, NotificationPreferences, Suggestion,
 } from './types'
 
 type FamilyCreateInput = { name: string; home_location?: string; home_airport?: string }
@@ -72,6 +72,17 @@ export const familyApi = {
     request<Family>(`/family/join/${invitation_id}`, { method: 'POST' }),
   removeMember: (user_id: string) =>
     request<void>(`/family/members/${user_id}`, { method: 'DELETE' }),
+  getIcalToken: () => request<{ token: string; family_id: string }>('/family/ical-token'),
+  regenerateIcalToken: () =>
+    request<{ token: string; family_id: string }>('/family/ical-token/regenerate', { method: 'POST' }),
+}
+
+// Suggestions
+export const suggestionsApi = {
+  list: () => request<Suggestion[]>('/suggestions'),
+  generate: () => request<{ status: string }>('/suggestions/generate', { method: 'POST' }),
+  accept: (id: string) => request<Suggestion>(`/suggestions/${id}/accept`, { method: 'POST' }),
+  dismiss: (id: string) => request<void>(`/suggestions/${id}/dismiss`, { method: 'POST' }),
 }
 
 // Events

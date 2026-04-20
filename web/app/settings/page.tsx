@@ -5,6 +5,8 @@ import { useRequireAuth } from '@/lib/auth'
 import { familyApi, notificationsApi } from '@/lib/api'
 import Nav from '@/components/Nav'
 
+const API = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8000'
+
 export default function SettingsPage() {
   const { user } = useRequireAuth()
   const queryClient = useQueryClient()
@@ -22,6 +24,8 @@ export default function SettingsPage() {
 
   const [inviteEmail, setInviteEmail] = useState('')
   const [inviteMsg, setInviteMsg] = useState('')
+  const [icalUrl, setIcalUrl] = useState('')
+  const [icalCopied, setIcalCopied] = useState(false)
 
   if (!user || !family || !prefs) return (
     <>
@@ -47,6 +51,32 @@ export default function SettingsPage() {
     if (!confirm('Remove this member?')) return
     await familyApi.removeMember(memberId)
     queryClient.invalidateQueries({ queryKey: ['family'] })
+  }
+
+  async function handleGetIcalUrl() {
+    try {
+      const { token, family_id } = await familyApi.getIcalToken()
+      setIcalUrl(`${API}/ical/${family_id}/${token}`)
+    } catch (err: any) {
+      setIcalUrl(err.message)
+    }
+  }
+
+  async function handleRegenerateIcalUrl() {
+    if (!confirm('Regenerating will invalidate the current URL. Anyone subscribed will need to resubscribe. Continue?')) return
+    try {
+      const { token, family_id } = await familyApi.regenerateIcalToken()
+      setIcalUrl(`${API}/ical/${family_id}/${token}`)
+      setIcalCopied(false)
+    } catch (err: any) {
+      alert(err.message)
+    }
+  }
+
+  async function handleCopyIcal() {
+    await navigator.clipboard.writeText(icalUrl)
+    setIcalCopied(true)
+    setTimeout(() => setIcalCopied(false), 2000)
   }
 
   async function togglePref(key: 'notify_push' | 'notify_email') {
@@ -132,6 +162,51 @@ export default function SettingsPage() {
             </form>
           )}
         </section>
+        {/* iCal sharing */}
+        {isOwner && (
+          <section className="bg-white border border-gray-200 rounded-xl p-5 space-y-3">
+            <h2 className="font-semibold text-gray-900">Subscribe to calendar</h2>
+            <p className="text-sm text-gray-500">
+              Add your family calendar to Apple Calendar, Google Calendar, or any app that supports iCal subscriptions.
+            </p>
+            {!icalUrl ? (
+              <button
+                onClick={handleGetIcalUrl}
+                className="bg-indigo-600 text-white text-sm font-medium px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors"
+              >
+                Get subscription URL
+              </button>
+            ) : (
+              <div className="space-y-2">
+                <div className="flex gap-2">
+                  <input
+                    readOnly
+                    value={icalUrl}
+                    className="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-xs text-gray-600 bg-gray-50 focus:outline-none"
+                    onFocus={e => e.target.select()}
+                  />
+                  <button
+                    onClick={handleCopyIcal}
+                    className="bg-indigo-600 text-white text-sm font-medium px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors whitespace-nowrap"
+                  >
+                    {icalCopied ? 'Copied!' : 'Copy'}
+                  </button>
+                </div>
+                <div className="flex items-center justify-between">
+                  <p className="text-xs text-gray-400">
+                    Keep this URL private — anyone with it can read your calendar.
+                  </p>
+                  <button
+                    onClick={handleRegenerateIcalUrl}
+                    className="text-xs text-red-500 hover:text-red-700 ml-4 whitespace-nowrap"
+                  >
+                    Regenerate URL
+                  </button>
+                </div>
+              </div>
+            )}
+          </section>
+        )}
       </main>
     </>
   )

@@ -9,21 +9,37 @@ interface Props {
   submitLabel?: string
 }
 
+function pad(n: number) { return String(n).padStart(2, '0') }
+
+function toLocalDate(utcStr: string): string {
+  const d = new Date(utcStr)
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`
+}
+
+function toLocalTime(utcStr: string): string {
+  const d = new Date(utcStr)
+  return `${pad(d.getHours())}:${pad(d.getMinutes())}`
+}
+
 export default function EventForm({ initial = {}, onSubmit, onCancel, submitLabel = 'Save' }: Props) {
   const [title, setTitle] = useState(initial.title ?? '')
   const [description, setDescription] = useState(initial.description ?? '')
   const [allDay, setAllDay] = useState(initial.is_all_day ?? false)
   const [startDate, setStartDate] = useState(
-    initial.start_datetime ? initial.start_datetime.slice(0, 10) : ''
+    initial.start_datetime
+      ? (initial.is_all_day ? initial.start_datetime.slice(0, 10) : toLocalDate(initial.start_datetime))
+      : ''
   )
   const [startTime, setStartTime] = useState(
-    initial.start_datetime && !initial.is_all_day ? initial.start_datetime.slice(11, 16) : ''
+    initial.start_datetime && !initial.is_all_day ? toLocalTime(initial.start_datetime) : ''
   )
   const [endDate, setEndDate] = useState(
-    initial.end_datetime ? initial.end_datetime.slice(0, 10) : ''
+    initial.end_datetime
+      ? (initial.is_all_day ? initial.end_datetime.slice(0, 10) : toLocalDate(initial.end_datetime))
+      : ''
   )
   const [endTime, setEndTime] = useState(
-    initial.end_datetime && !initial.is_all_day ? initial.end_datetime.slice(11, 16) : ''
+    initial.end_datetime && !initial.is_all_day ? toLocalTime(initial.end_datetime) : ''
   )
   const [location, setLocation] = useState(initial.location ?? '')
   const [references, setReferences] = useState(initial.references ?? '')
@@ -42,12 +58,14 @@ export default function EventForm({ initial = {}, onSubmit, onCancel, submitLabe
       if (references) data.references = references
 
       if (startDate) {
-        data.start_datetime = allDay
-          ? `${startDate}T00:00:00Z`
-          : `${startDate}T${startTime || '00:00'}:00Z`
+        if (allDay) {
+          data.start_datetime = `${startDate}T00:00:00Z`
+        } else {
+          data.start_datetime = new Date(`${startDate}T${startTime || '00:00'}:00`).toISOString()
+        }
       }
       if (endDate && !allDay) {
-        data.end_datetime = `${endDate}T${endTime || '00:00'}:00Z`
+        data.end_datetime = new Date(`${endDate}T${endTime || '00:00'}:00`).toISOString()
       }
 
       await onSubmit(data)
