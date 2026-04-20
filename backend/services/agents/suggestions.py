@@ -1,4 +1,5 @@
 import json
+import traceback
 import uuid
 from datetime import datetime, timezone, timedelta
 from firebase import db
@@ -6,6 +7,14 @@ from services.agents.claude import get_client, MODEL
 
 
 def run_suggestions_agent(family_id: str) -> None:
+    try:
+        _run(family_id)
+    except Exception as exc:
+        print(f"[suggestions] generation failed for family {family_id}: {exc}")
+        traceback.print_exc()
+
+
+def _run(family_id: str) -> None:
     family_doc = db.collection("families").document(family_id).get()
     if not family_doc.exists:
         return

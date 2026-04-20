@@ -20,17 +20,22 @@ export default function SuggestionsPage() {
 
   async function handleGenerate() {
     setGenerating(true)
-    setMsg('')
+    setMsg('Generating… this usually takes 10–15 seconds.')
     try {
       await suggestionsApi.generate()
-      setMsg('Generating suggestions… refresh in a moment.')
-      setTimeout(() => {
-        queryClient.invalidateQueries({ queryKey: ['suggestions'] })
-        setMsg('')
-      }, 4000)
+      // Poll every 3s up to 6 times (18s total) waiting for the background task to finish
+      let attempts = 0
+      const poll = setInterval(async () => {
+        attempts++
+        await queryClient.invalidateQueries({ queryKey: ['suggestions'] })
+        if (attempts >= 6) {
+          clearInterval(poll)
+          setGenerating(false)
+          setMsg('')
+        }
+      }, 3000)
     } catch (err: any) {
       setMsg(err.message)
-    } finally {
       setGenerating(false)
     }
   }
