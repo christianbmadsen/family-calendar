@@ -205,6 +205,22 @@ def main():
     be_env["GMAIL_ADDRESS"]      = gmail_address
     be_env["GMAIL_APP_PASSWORD"] = gmail_password
 
+    # ── Optional: Anthropic API key ───────────────────────────────────────
+    existing_key = be_env.get("ANTHROPIC_API_KEY", "")
+    if existing_key:
+        ok(f"Anthropic API key already configured  {dim('(AI suggestions enabled)')}")
+    else:
+        blank()
+        info("AI activity suggestions are optional and require an Anthropic API key.")
+        if ask_yes("Add an Anthropic API key now?", default=False):
+            open_url("https://console.anthropic.com")
+            pause("Press Enter once you have your API key…")
+            api_key = ask("Anthropic API key (starts with sk-ant-)")
+            be_env["ANTHROPIC_API_KEY"] = api_key
+            ok("Anthropic API key saved")
+        else:
+            info("Skipped — add ANTHROPIC_API_KEY to backend/.env later to enable suggestions")
+
     # ── Step 3: Write environment files ──────────────────────────────────
     step(3, TOTAL_STEPS, "Writing environment files")
 
