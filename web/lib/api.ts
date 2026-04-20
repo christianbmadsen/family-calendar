@@ -1,11 +1,9 @@
 import type {
   AuthResponse, CalendarEvent, EventCreate, EventUpdate,
-  Family, FamilyCreate, Invitation, NotificationPreferences,
-  Suggestion, User,
+  Family, Invitation, NotificationPreferences,
 } from './types'
 
-// Defined here to avoid circular import with auth context
-type FamilyCreate = { name: string; home_location: string; home_airport: string }
+type FamilyCreateInput = { name: string; home_location?: string; home_airport?: string }
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8000'
 
@@ -45,10 +43,15 @@ async function request<T>(
 
 // Auth
 export const authApi = {
-  googleLogin: (auth_code: string) =>
-    request<AuthResponse>('/auth/google', {
+  login: (email: string, password: string) =>
+    request<AuthResponse>('/auth/login', {
       method: 'POST',
-      body: JSON.stringify({ auth_code }),
+      body: JSON.stringify({ email, password }),
+    }),
+  register: (email: string, password: string, name?: string) =>
+    request<AuthResponse>('/auth/register', {
+      method: 'POST',
+      body: JSON.stringify({ email, password, name }),
     }),
   logout: () => request<void>('/auth/logout', { method: 'POST' }),
 }
@@ -56,9 +59,9 @@ export const authApi = {
 // Family
 export const familyApi = {
   get: () => request<Family>('/family'),
-  create: (data: FamilyCreate) =>
+  create: (data: FamilyCreateInput) =>
     request<Family>('/family', { method: 'POST', body: JSON.stringify(data) }),
-  update: (data: Partial<FamilyCreate>) =>
+  update: (data: Partial<FamilyCreateInput>) =>
     request<Family>('/family', { method: 'PUT', body: JSON.stringify(data) }),
   invite: (email: string) =>
     request<Invitation>('/family/invite', {
@@ -89,18 +92,6 @@ export const eventsApi = {
   sync: () => request<void>('/events/sync', { method: 'POST' }),
 }
 
-// Suggestions
-export const suggestionsApi = {
-  list: (type?: 'opportunity' | 'travel_deal') => {
-    const qs = type ? `?type=${type}` : ''
-    return request<Suggestion[]>(`/suggestions${qs}`)
-  },
-  accept: (id: string) =>
-    request<Suggestion>(`/suggestions/${id}/accept`, { method: 'PUT' }),
-  dismiss: (id: string) =>
-    request<Suggestion>(`/suggestions/${id}/dismiss`, { method: 'PUT' }),
-}
-
 // Notifications
 export const notificationsApi = {
   getPreferences: () => request<NotificationPreferences>('/notifications/preferences'),
@@ -114,12 +105,4 @@ export const notificationsApi = {
       method: 'POST',
       body: JSON.stringify({ token }),
     }),
-}
-
-// Agents
-export const agentsApi = {
-  runOpportunities: () =>
-    request<void>('/agents/opportunities/run', { method: 'POST' }),
-  runTravel: () =>
-    request<void>('/agents/travel/run', { method: 'POST' }),
 }

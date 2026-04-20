@@ -7,7 +7,8 @@ import { authApi } from './api'
 interface AuthContextValue {
   user: User | null
   token: string | null
-  login: (auth_code: string) => Promise<{ is_new_user: boolean }>
+  login: (email: string, password: string) => Promise<{ is_new_user: boolean }>
+  register: (email: string, password: string, name?: string) => Promise<{ is_new_user: boolean }>
   logout: () => void
   isLoading: boolean
 }
@@ -30,12 +31,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setIsLoading(false)
   }, [])
 
-  async function login(auth_code: string): Promise<{ is_new_user: boolean }> {
-    const data = await authApi.googleLogin(auth_code)
+  function _persist(data: { access_token: string; user: User }) {
     localStorage.setItem('auth_token', data.access_token)
     localStorage.setItem('auth_user', JSON.stringify(data.user))
     setToken(data.access_token)
     setUser(data.user)
+  }
+
+  async function login(email: string, password: string): Promise<{ is_new_user: boolean }> {
+    const data = await authApi.login(email, password)
+    _persist(data)
+    return { is_new_user: data.is_new_user }
+  }
+
+  async function register(email: string, password: string, name?: string): Promise<{ is_new_user: boolean }> {
+    const data = await authApi.register(email, password, name)
+    _persist(data)
     return { is_new_user: data.is_new_user }
   }
 
@@ -49,7 +60,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   return (
-    <AuthContext.Provider value={{ user, token, login, logout, isLoading }}>
+    <AuthContext.Provider value={{ user, token, login, register, logout, isLoading }}>
       {children}
     </AuthContext.Provider>
   )

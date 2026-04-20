@@ -16,8 +16,8 @@ export interface Family {
   name: string
   owner_id: string
   member_ids: string[]
-  home_location: string
-  home_airport: string
+  home_location?: string
+  home_airport?: string
   google_calendar_id?: string
   created_at: string
 }

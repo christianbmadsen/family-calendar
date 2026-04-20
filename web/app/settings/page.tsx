@@ -22,9 +22,6 @@ export default function SettingsPage() {
 
   const [inviteEmail, setInviteEmail] = useState('')
   const [inviteMsg, setInviteMsg] = useState('')
-  const [homeLocation, setHomeLocation] = useState(family?.home_location ?? '')
-  const [homeAirport, setHomeAirport] = useState(family?.home_airport ?? '')
-  const [familyMsg, setFamilyMsg] = useState('')
 
   if (!user || !family || !prefs) return (
     <>
@@ -46,17 +43,6 @@ export default function SettingsPage() {
     }
   }
 
-  async function handleUpdateFamily(e: React.FormEvent) {
-    e.preventDefault()
-    try {
-      await familyApi.update({ home_location: homeLocation, home_airport: homeAirport.toUpperCase() })
-      queryClient.invalidateQueries({ queryKey: ['family'] })
-      setFamilyMsg('Saved.')
-    } catch (err: any) {
-      setFamilyMsg(err.message)
-    }
-  }
-
   async function handleRemoveMember(memberId: string) {
     if (!confirm('Remove this member?')) return
     await familyApi.removeMember(memberId)
@@ -64,7 +50,7 @@ export default function SettingsPage() {
   }
 
   async function togglePref(key: 'notify_push' | 'notify_email') {
-    await notificationsApi.updatePreferences({ [key]: !prefs[key] })
+    await notificationsApi.updatePreferences({ [key]: !prefs?.[key] })
     queryClient.invalidateQueries({ queryKey: ['notif-prefs'] })
   }
 
@@ -100,41 +86,6 @@ export default function SettingsPage() {
           ))}
         </section>
 
-        {/* Family settings (owner only) */}
-        {isOwner && (
-          <section className="bg-white border border-gray-200 rounded-xl p-5 space-y-4">
-            <h2 className="font-semibold text-gray-900">Family settings</h2>
-            <form onSubmit={handleUpdateFamily} className="space-y-3">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Home city</label>
-                <input
-                  type="text"
-                  value={homeLocation}
-                  onChange={e => setHomeLocation(e.target.value)}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Home airport (IATA)</label>
-                <input
-                  type="text"
-                  value={homeAirport}
-                  onChange={e => setHomeAirport(e.target.value)}
-                  maxLength={3}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm uppercase focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                />
-              </div>
-              {familyMsg && <p className="text-sm text-indigo-600">{familyMsg}</p>}
-              <button
-                type="submit"
-                className="bg-indigo-600 text-white text-sm font-medium px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors"
-              >
-                Save
-              </button>
-            </form>
-          </section>
-        )}
-
         {/* Members */}
         <section className="bg-white border border-gray-200 rounded-xl p-5 space-y-4">
           <h2 className="font-semibold text-gray-900">Family members</h2>
@@ -166,7 +117,7 @@ export default function SettingsPage() {
                   type="email"
                   value={inviteEmail}
                   onChange={e => setInviteEmail(e.target.value)}
-                  placeholder="Invite by Google email"
+                  placeholder="Invite by email"
                   required
                   className="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
                 />
